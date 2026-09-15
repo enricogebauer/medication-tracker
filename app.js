@@ -10,6 +10,15 @@ const state = {
   installPrompt: null
 };
 
+async function requestPersistentStorage() {
+  if (!navigator.storage?.persist) return false;
+  try {
+    return await navigator.storage.persist();
+  } catch {
+    return false;
+  }
+}
+
 function isInstalled() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
@@ -212,6 +221,7 @@ function renderSchedule() {
           state.history[key] = { givenAt: new Date().toISOString(), dose: select.value };
         }
         save();
+        requestPersistentStorage();
         render();
       });
       list.append(medFragment);
@@ -287,6 +297,7 @@ async function importJson(file, restoreHistory) {
     }
   }
   save();
+  requestPersistentStorage();
   render();
 }
 
@@ -359,6 +370,7 @@ window.addEventListener("beforeinstallprompt", event => {
 });
 
 document.getElementById("install-button").addEventListener("click", async () => {
+  await requestPersistentStorage();
   if (state.installPrompt) {
     await state.installPrompt.prompt();
     const choice = await state.installPrompt.userChoice;
