@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17324d">
+  <meta name="description" content="Offline-capable medication schedule and dose tracker">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Medication Tracker</title>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="kicker">Offline-capable</p>
+      <h1 id="patient-name">Medication Tracker</h1>
+      <p id="subtitle" class="subtitle">Private data stays in this browser</p>
+    </div>
+    <button id="install-button" class="header-button" hidden>Install</button>
+  </header>
+
+  <main>
+    <section id="setup-card" class="card">
+      <div class="card-pad">
+        <p class="label">First-time setup</p>
+        <h2>Import a private schedule</h2>
+        <p>Select the JSON configuration file stored on your phone or cloud drive. Its contents are saved only in this browser and are not uploaded to this website.</p>
+        <label class="file-button">
+          Import schedule
+          <input id="config-input" type="file" accept=".json,application/json">
+        </label>
+      </div>
+    </section>
+
+    <section id="app" hidden>
+      <section class="card next-card" aria-live="polite">
+        <p class="label">Next dose</p>
+        <h2 id="next-time">Loading…</h2>
+        <p id="next-meds" class="next-meds"></p>
+        <p id="countdown" class="countdown"></p>
+      </section>
+
+      <section id="backup-warning" class="warning" hidden>
+        <strong>Backup recommended.</strong>
+        <span>Your last full backup is more than 24 hours old.</span>
+        <button id="warning-backup-button" class="small-button">Back up now</button>
+      </section>
+
+      <section id="overdue-warning" class="warning danger-warning" hidden></section>
+
+      <nav class="tabs" aria-label="Tracker sections">
+        <button class="tab active" data-tab="schedule">Schedule</button>
+        <button class="tab" data-tab="history">History</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </nav>
+
+      <section id="schedule-panel" class="panel">
+        <div id="schedule"></div>
+      </section>
+
+      <section id="history-panel" class="panel" hidden>
+        <section class="card">
+          <div class="card-pad">
+            <div class="section-head">
+              <h2>Dose history</h2>
+              <button id="csv-button" class="secondary">Export CSV</button>
+            </div>
+            <div id="history"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="settings-panel" class="panel" hidden>
+        <section class="card">
+          <div class="card-pad">
+            <h2>Backup and restore</h2>
+            <p class="muted">A full backup contains the imported schedule and dose history. Save it to a durable location such as OneDrive.</p>
+            <div class="button-stack">
+              <button id="backup-button">Download full backup</button>
+              <label class="file-button secondary-file">
+                Restore backup
+                <input id="restore-input" type="file" accept=".json,application/json">
+              </label>
+            </div>
+            <p id="backup-time" class="muted"></p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-pad">
+            <h2>Schedule configuration</h2>
+            <p class="muted">Importing another schedule replaces the current schedule but preserves matching history entries.</p>
+            <label class="file-button secondary-file">
+              Import replacement schedule
+              <input id="replacement-input" type="file" accept=".json,application/json">
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-pad">
+            <h2>Install and offline use</h2>
+            <p>After the site loads once, it can work offline. Add it to the home screen for app-like access.</p>
+            <p class="muted">On iPhone/iPad: Safari → Share → Add to Home Screen. On Android: browser menu → Install app or Add to Home screen.</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-pad">
+            <h2>Local data</h2>
+            <p class="muted">Schedule and history are stored only in this browser. Clearing site data removes them unless you have a backup.</p>
+            <button id="erase-button" class="danger-button">Erase local data</button>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <template id="slot-template">
+    <section class="card slot">
+      <div class="slot-head">
+        <div>
+          <p class="slot-date"></p>
+          <h2 class="slot-time"></h2>
+        </div>
+        <span class="slot-state"></span>
+      </div>
+      <div class="med-list"></div>
+    </section>
+  </template>
+
+  <template id="med-template">
+    <div class="med-row">
+      <div class="med-copy">
+        <strong class="med-name"></strong>
+        <span class="med-note"></span>
+        <label class="dose-label">
+          <span>Amount</span>
+          <select class="dose-select"></select>
+        </label>
+      </div>
+      <button class="given-button">Mark given</button>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
