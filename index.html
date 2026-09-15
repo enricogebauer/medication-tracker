@@ -17,7 +17,7 @@
       <h1 id="patient-name">Medication Tracker</h1>
       <p id="subtitle" class="subtitle">Private data stays in this browser</p>
     </div>
-    <button id="install-button" class="header-button" hidden>Install</button>
+    <button id="install-button" class="header-button">Install</button>
   </header>
 
   <main>
@@ -116,6 +116,14 @@
       </section>
     </section>
   </main>
+
+  <dialog id="install-dialog">
+    <div class="dialog-head">
+      <h2>Install on this phone</h2>
+      <button id="close-install-dialog" class="icon-button" aria-label="Close">×</button>
+    </div>
+    <div id="install-instructions"></div>
+  </dialog>
 
   <template id="slot-template">
     <section class="card slot">

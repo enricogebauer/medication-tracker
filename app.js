@@ -10,6 +10,38 @@ const state = {
   installPrompt: null
 };
 
+function isInstalled() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function installHelpHtml() {
+  const agent = navigator.userAgent;
+  const ios = /iPad|iPhone|iPod/.test(agent);
+  const android = /Android/.test(agent);
+  const edgeAndroid = /EdgA\//.test(agent);
+  const inApp = /FBAN|FBAV|Instagram|Line|WhatsApp|OneDrive|GSA/i.test(agent);
+
+  if (isInstalled()) {
+    return "<p>This tracker is already running as an installed app.</p>";
+  }
+  if (inApp) {
+    return `<p>This in-app browser cannot install websites.</p>
+      <ol><li>Open the browser menu.</li><li>Choose <strong>Open in Safari</strong> or <strong>Open in Chrome</strong>.</li><li>Return to this page and use its install or home-screen option.</li></ol>`;
+  }
+  if (ios) {
+    return `<ol><li>Open this page in <strong>Safari</strong>.</li><li>Tap the <strong>Share</strong> button.</li><li>Scroll down and tap <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong>.</li></ol>
+      <p class="muted">iPhone and iPad do not display Chrome-style website installation prompts.</p>`;
+  }
+  if (edgeAndroid) {
+    return `<ol><li>Tap Edge's <strong>three-line menu</strong> at the bottom.</li><li>Tap <strong>Add to phone</strong>, <strong>Install app</strong>, or <strong>Add to Home screen</strong>.</li><li>Confirm <strong>Install</strong> or <strong>Add</strong>.</li></ol>
+      <p class="muted">If the option is missing, refresh this page once and reopen the menu.</p>`;
+  }
+  if (android) {
+    return `<ol><li>Open this page in <strong>Chrome</strong>.</li><li>Tap Chrome's three-dot menu.</li><li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li></ol>`;
+  }
+  return `<ol><li>Open the browser menu.</li><li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li></ol>`;
+}
+
 function readJson(key) {
   try {
     return JSON.parse(localStorage.getItem(key) || "null");
@@ -324,15 +356,31 @@ document.getElementById("erase-button").addEventListener("click", () => {
 window.addEventListener("beforeinstallprompt", event => {
   event.preventDefault();
   state.installPrompt = event;
-  document.getElementById("install-button").hidden = false;
 });
 
 document.getElementById("install-button").addEventListener("click", async () => {
-  if (!state.installPrompt) return;
-  await state.installPrompt.prompt();
-  state.installPrompt = null;
+  if (state.installPrompt) {
+    await state.installPrompt.prompt();
+    const choice = await state.installPrompt.userChoice;
+    state.installPrompt = null;
+    if (choice.outcome === "accepted") {
+      document.getElementById("install-button").hidden = true;
+      return;
+    }
+  }
+  document.getElementById("install-instructions").innerHTML = installHelpHtml();
+  document.getElementById("install-dialog").showModal();
+});
+
+document.getElementById("close-install-dialog").addEventListener("click", () => {
+  document.getElementById("install-dialog").close();
+});
+
+window.addEventListener("appinstalled", () => {
   document.getElementById("install-button").hidden = true;
 });
+
+if (isInstalled()) document.getElementById("install-button").hidden = true;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));

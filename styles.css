@@ -126,6 +126,30 @@ button, .file-button {
 .small-button { margin-left: auto; min-height: 36px; padding: 6px 9px; }
 .button-stack { display: flex; flex-wrap: wrap; gap: 9px; }
 
+dialog {
+  border: 0;
+  border-radius: 17px;
+  box-shadow: 0 18px 55px rgba(10, 28, 46, .28);
+  color: var(--ink);
+  max-width: min(92vw, 480px);
+  padding: 18px;
+}
+
+dialog::backdrop { background: rgba(8, 21, 35, .55); }
+.dialog-head { align-items: center; display: flex; justify-content: space-between; }
+.dialog-head h2 { margin: 0; }
+.icon-button {
+  background: transparent;
+  border: 0;
+  color: var(--navy);
+  font-size: 1.8rem;
+  min-height: 36px;
+  padding: 0 6px;
+}
+
+#install-instructions { margin-top: 14px; }
+#install-instructions ol { padding-left: 22px; }
+
 .slot-head {
   align-items: center;
   background: #f8fafc;
