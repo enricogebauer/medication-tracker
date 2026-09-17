@@ -11,6 +11,7 @@ The public repository contains no patient name, diagnosis, medications, doses, d
 - Next-dose countdown
 - Large phone-friendly controls
 - Selectable dose amounts
+- Clearly labeled as-needed medications that remain available without becoming overdue
 - Local dose history
 - Full JSON backup and restore
 - CSV export

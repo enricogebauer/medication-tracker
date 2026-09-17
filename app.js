@@ -85,6 +85,9 @@ function validateConfig(config) {
       if (!med.id || !med.name || (!med.dose && !Array.isArray(med.options))) {
         throw new Error("A medication entry is incomplete.");
       }
+      if ("asNeeded" in med && typeof med.asNeeded !== "boolean") {
+        throw new Error("A medication has an invalid as-needed setting.");
+      }
     });
   });
   return config;
@@ -123,6 +126,10 @@ function isGiven(slotId, medicationId) {
   return Boolean(state.history[recordKey(slotId, medicationId)]);
 }
 
+function isAsNeeded(medication) {
+  return medication.asNeeded === true;
+}
+
 function sortedSchedule() {
   if (!state.config) return [];
   return [...state.config.schedule].sort((a, b) => parseDate(a.at) - parseDate(b.at));
@@ -131,7 +138,7 @@ function sortedSchedule() {
 function nextPending() {
   const now = Date.now();
   for (const slot of sortedSchedule()) {
-    const pending = slot.medications.filter(med => !isGiven(slot.id, med.id));
+    const pending = slot.medications.filter(med => !isAsNeeded(med) && !isGiven(slot.id, med.id));
     if (pending.length && parseDate(slot.at).getTime() >= now - 3 * 60 * 60 * 1000) {
       return { slot, pending };
     }
@@ -186,8 +193,15 @@ function renderSchedule() {
     const date = parseDate(slot.at);
     fragment.querySelector(".slot-date").textContent = formatDate(date);
     fragment.querySelector(".slot-time").textContent = formatTime(date);
-    const completed = slot.medications.filter(med => isGiven(slot.id, med.id)).length;
-    fragment.querySelector(".slot-state").textContent = `${completed}/${slot.medications.length} given`;
+    const scheduled = slot.medications.filter(med => !isAsNeeded(med));
+    const optional = slot.medications.filter(isAsNeeded);
+    const completed = scheduled.filter(med => isGiven(slot.id, med.id)).length;
+    const optionalGiven = optional.filter(med => isGiven(slot.id, med.id)).length;
+    const status = [`${completed}/${scheduled.length} scheduled given`];
+    if (optional.length) {
+      status.push(optionalGiven ? `${optionalGiven}/${optional.length} optional given` : "optional available");
+    }
+    fragment.querySelector(".slot-state").textContent = status.join(" · ");
     const list = fragment.querySelector(".med-list");
 
     slot.medications.forEach(med => {
@@ -195,6 +209,7 @@ function renderSchedule() {
       const key = recordKey(slot.id, med.id);
       const existing = state.history[key];
       const row = medFragment.querySelector(".med-row");
+      row.classList.toggle("as-needed", isAsNeeded(med));
       medFragment.querySelector(".med-name").textContent = med.name;
       medFragment.querySelector(".med-note").textContent = med.note || "";
       const select = medFragment.querySelector(".dose-select");
@@ -213,6 +228,8 @@ function renderSchedule() {
         row.classList.add("given");
         button.classList.add("done");
         button.textContent = "Given ✓";
+      } else if (isAsNeeded(med)) {
+        button.textContent = "Mark given if used";
       }
       button.addEventListener("click", () => {
         if (state.history[key]) {
